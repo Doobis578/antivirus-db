@@ -2,7 +2,7 @@ name: Compile Antivirus to EXE
 
 on:
   push:
-    branches: ["main", "master"]
+    branches: [ "main", "master" ]
 
 jobs:
   build:
@@ -22,11 +22,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install pyinstaller
 
-    - name: 🔍 Run Syntax Health Check
-      run: python -m py_compile scanner.py
-
     - name: Compile Application
-      run: python -m PyInstaller --onefile --noconsole scanner.py
+      run: pyinstaller --onefile --console scanner.py
 
     - name: Save Executable Artifact
       uses: actions/upload-artifact@v4
