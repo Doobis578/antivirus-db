@@ -190,7 +190,7 @@ class AntivirusApp:
                 sel = q_listbox.get(q_listbox.curselection())
                 src = os.path.join(QUARANTINE_DIR, sel)
                 parts = sel.split("_", 1)
-                # FIXED: Correct list indexing targets parts[1] cleanly so PyInstaller can build it
+                # FIXED: Added the [1] index so Python targets the string element, not the list
                 orig_name = parts[1].replace(".locked", "") if len(parts) > 1 else sel.replace(".locked", "")
                 dst = os.path.join(self.target_folder, orig_name)
                 shutil.move(src, dst)
@@ -199,13 +199,6 @@ class AntivirusApp:
             except Exception as e:
                 messagebox.showwarning("Error", f"Failed to restore: {str(e)}")
 
-        def delete_selected():
-            try:
-                sel = q_listbox.get(q_listbox.curselection())
-                os.remove(os.path.join(QUARANTINE_DIR, sel))
-                refresh_q_list()
-            except:
-                messagebox.showwarning("Error", "Please select an item to delete permanently.")
 
         ttk.Button(btn_frame, text="Restore File", command=restore_selected).pack(side=tk.LEFT, padx=20)
         ttk.Button(btn_frame, text="Delete Permanently", command=delete_selected).pack(side=tk.LEFT, padx=5)
