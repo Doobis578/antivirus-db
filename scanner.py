@@ -69,7 +69,6 @@ class AntivirusApp:
         self.scan_btn = tk.Button(control_frame, text="🚀 Start Scan", font=("Segoe UI", 10, "bold"), bg="#10b981", fg="white", bd=0, padx=12, pady=6, command=self.start_scan_thread)
         self.scan_btn.pack(side=tk.LEFT)
         
-        # This adds the Live Shield UI to your panel layout
         self.monitor_check = tk.Checkbutton(control_frame, text="🛡️ Live Shield", variable=self.monitor_active, font=("Segoe UI", 9, "bold"), fg="#1e3a8a", bg="#f3f4f6", command=self.toggle_monitor_status)
         self.monitor_check.pack(side=tk.LEFT, padx=15)
         
@@ -193,7 +192,13 @@ class AntivirusApp:
                 sel = q_listbox.get(q_listbox.curselection())
                 src = os.path.join(QUARANTINE_DIR, sel)
                 clean_name = sel.replace(".locked", "")
-                orig_name = clean_name.split("_", 1)[-1] if "_" in clean_name else clean_name
+                
+                if "_" in clean_name:
+                    chunks = clean_name.split("_")
+                    orig_name = "_".join(chunks[1:])
+                else:
+                    orig_name = clean_name
+                    
                 dst = os.path.join(self.target_folder, orig_name)
                 shutil.move(src, dst)
                 refresh_q_list()
@@ -218,4 +223,3 @@ class AntivirusApp:
         CLOUD_DB_URL = f"https://githubusercontent.com{GITHUB_USER}/{REPO_NAME}/main/signatures.json"
         try:
             req = urllib.request.Request(CLOUD_DB_URL, headers={'User-Agent': 'Mozilla/5.0'})
-            with urllib.request.urlopen(req, timeout=5) as response:
