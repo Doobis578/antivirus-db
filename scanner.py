@@ -54,7 +54,7 @@ class AntivirusApp:
         threading.Thread(target=self.native_realtime_monitor, daemon=True).start()
 
     def setup_ui(self):
-        header = tk.Label(self.root, text="🛡️ Advanced Antivirus & Threat Control", font=("Segoe UI", 15, "bold"), bg="#1e3a8a", fg="white", pady=12)
+        header = tk.Label(self.root, text="Advanced Antivirus and Threat Control", font=("Segoe UI", 15, "bold"), bg="#1e3a8a", fg="white", pady=12)
         header.pack(fill=tk.X)
         
         dir_frame = tk.Frame(self.root, bg="#f3f4f6", pady=8)
@@ -66,13 +66,13 @@ class AntivirusApp:
         
         control_frame = tk.Frame(self.root, bg="#f3f4f6", pady=5)
         control_frame.pack(fill=tk.X, padx=20)
-        self.scan_btn = tk.Button(control_frame, text="🚀 Start Scan", font=("Segoe UI", 10, "bold"), bg="#10b981", fg="white", bd=0, padx=12, pady=6, command=self.start_scan_thread)
+        self.scan_btn = tk.Button(control_frame, text="Start Scan", font=("Segoe UI", 10, "bold"), bg="#10b981", fg="white", bd=0, padx=12, pady=6, command=self.start_scan_thread)
         self.scan_btn.pack(side=tk.LEFT)
         
-        self.monitor_check = tk.Checkbutton(control_frame, text="🛡️ Live Shield", variable=self.monitor_active, font=("Segoe UI", 9, "bold"), fg="#1e3a8a", bg="#f3f4f6", command=self.toggle_monitor_status)
+        self.monitor_check = tk.Checkbutton(control_frame, text="Live Shield", variable=self.monitor_active, font=("Segoe UI", 9, "bold"), fg="#1e3a8a", bg="#f3f4f6", command=self.toggle_monitor_status)
         self.monitor_check.pack(side=tk.LEFT, padx=15)
         
-        self.quarantine_btn = tk.Button(control_frame, text="🔒 Quarantine Manager", font=("Segoe UI", 9, "bold"), bg="#4b5563", fg="white", bd=0, padx=10, pady=6, command=self.open_quarantine_manager)
+        self.quarantine_btn = tk.Button(control_frame, text="Quarantine Manager", font=("Segoe UI", 9, "bold"), bg="#4b5563", fg="white", bd=0, padx=10, pady=6, command=self.open_quarantine_manager)
         self.quarantine_btn.pack(side=tk.LEFT, padx=5)
         
         self.status_text = tk.Label(control_frame, text="Syncing cloud database...", font=("Segoe UI", 9, "italic"), bg="#f3f4f6", fg="#6b7280")
@@ -102,10 +102,10 @@ class AntivirusApp:
 
     def toggle_monitor_status(self):
         if self.monitor_active.get():
-            self.status_text.config(text="🛡️ Live Shield Active", fg="#047857")
+            self.status_text.config(text="Live Shield Active", fg="#047857")
             self.initialize_baseline()
         else:
-            self.status_text.config(text="⚠️ Live Shield Off", fg="#b45309")
+            self.status_text.config(text="Live Shield Off", fg="#b45309")
 
     def initialize_baseline(self):
         try:
@@ -157,7 +157,7 @@ class AntivirusApp:
                         break
 
             if virus_name:
-                prefix = "🚨 REAL-TIME" if real_time else "❌ DANGER"
+                prefix = "REAL-TIME" if real_time else "DANGER"
                 self.root.after(0, lambda: self.tree.insert("", 0, values=(prefix, f"[{virus_name}] {filename}")))
                 QuarantineHandler.isolate(file_path, virus_name, filename)
         except: pass
@@ -168,7 +168,7 @@ class AntivirusApp:
         q_win.geometry("500x350")
         q_win.configure(bg="#f3f4f6")
         
-        tk.Label(q_win, text="🔒 Quarantined Locked Items", font=("Segoe UI", 12, "bold"), bg="#f3f4f6", fg="#1f2937", pady=10).pack()
+        tk.Label(q_win, text="Quarantined Locked Items", font=("Segoe UI", 12, "bold"), bg="#f3f4f6", fg="#1f2937", pady=10).pack()
         
         list_frame = tk.Frame(q_win, bg="#f3f4f6")
         list_frame.pack(fill=tk.BOTH, expand=True, padx=15)
@@ -202,7 +202,7 @@ class AntivirusApp:
                 dst = os.path.join(self.target_folder, orig_name)
                 shutil.move(src, dst)
                 refresh_q_list()
-                messagebox.showinfo("Restored", "File restored safely to working directory.")
+                messagebox.showinfo("Restored", "File restored safely.")
             except Exception as e:
                 messagebox.showwarning("Error", f"Failed to restore: {str(e)}")
 
