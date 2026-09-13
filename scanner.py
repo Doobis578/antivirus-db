@@ -189,9 +189,15 @@ class AntivirusApp:
             try:
                 sel = q_listbox.get(q_listbox.curselection())
                 src = os.path.join(QUARANTINE_DIR, sel)
-                parts = sel.split("_", 1)
-                # FIXED: Added the [1] index so Python targets the string element, not the list
-                orig_name = parts[1].replace(".locked", "") if len(parts) > 1 else sel.replace(".locked", "")
+                
+                # ALTERNATIVE FIX: Safely strips the .locked suffix using clean path tools instead of string splits
+                clean_name = sel.replace(".locked", "")
+                if "_" in clean_name:
+                    # Remove the prefix by splitting and taking everything after the first underscore
+                    orig_name = clean_name.split("_", 1)[-1]
+                else:
+                    orig_name = clean_name
+                    
                 dst = os.path.join(self.target_folder, orig_name)
                 shutil.move(src, dst)
                 refresh_q_list()
@@ -199,6 +205,13 @@ class AntivirusApp:
             except Exception as e:
                 messagebox.showwarning("Error", f"Failed to restore: {str(e)}")
 
+        def delete_selected():
+            try:
+                sel = q_listbox.get(q_listbox.curselection())
+                os.remove(os.path.join(QUARANTINE_DIR, sel))
+                refresh_q_list()
+            except:
+                messagebox.showwarning("Error", "Please select an item to delete permanently.")
 
         ttk.Button(btn_frame, text="Restore File", command=restore_selected).pack(side=tk.LEFT, padx=20)
         ttk.Button(btn_frame, text="Delete Permanently", command=delete_selected).pack(side=tk.LEFT, padx=5)
@@ -206,7 +219,3 @@ class AntivirusApp:
     def sync_database(self):
         GITHUB_USER = "doobis587"
         REPO_NAME = "antivirus-db"
-        CLOUD_DB_URL = f"https://githubusercontent.com{GITHUB_USER}/{REPO_NAME}/main/signatures.json"
-        try:
-            req = urllib.request.Request(CLOUD_DB_URL, headers={'User-Agent': 'Mozilla/5.0'})
-            with urllib.request.urlopen(req, timeout=5) as response:
