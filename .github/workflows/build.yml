@@ -23,7 +23,7 @@ jobs:
         pip install pyinstaller watchdog
 
     - name: Compile Application
-      run: pyinstaller --onefile --noconsole --collect-all tkinter --collect-all watchdog scanner.py
+      run: pyinstaller --onefile --noconsole --collect-all tkinter --hidden-import=watchdog.observers.winapi --hidden-import=watchdog.observers.read_directory_changes scanner.py
 
     - name: Save Executable Artifact
       uses: actions/upload-artifact@v4
