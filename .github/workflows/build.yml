@@ -1,4 +1,3 @@
-```yaml
 name: Compile Antivirus to EXE
 
 on:
@@ -24,10 +23,10 @@ jobs:
         pip install pyinstaller
 
     - name: Compile Application
-      run: pyinstaller --onefile --noconsole --collect-all tkinter scanner.py
+      run: python -m PyInstaller --onefile --noconsole scanner.py
 
     - name: Save Executable Artifact
       uses: actions/upload-artifact@v4
       with:
         name: Antivirus-Program
-        path: dist/
+        path: dist/scanner.exe
