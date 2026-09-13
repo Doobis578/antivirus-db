@@ -1,0 +1,32 @@
+name: Compile Antivirus to EXE
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+
+    - name: Compile Application
+      run: pyinstaller --onefile --noconsole scanner.py
+
+    - name: Save Executable Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Antivirus-Program
+        path: dist/scanner.exe

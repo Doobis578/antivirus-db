@@ -1,13 +1,5 @@
 {
-    "signatures": {
-        "5d41402abc4b2a76b9719d911017c592": "Trojan.Generic.Hello",
-        "44d88612fea8a8f36de82e1278abb02f": "EICAR.Standard.Antivirus.Test",
-        {
-    "signatures": {
-        "5d41402abc4b2a76b9719d911017c592": "Trojan.Generic.Hello",
-        "your_new_md5_hash_string_here": "Adware.Test.Detected"
-    }
-}
-
-    }
+  "signatures": {
+    "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824": "Trojan.Generic.Hello"
+  }
 }
