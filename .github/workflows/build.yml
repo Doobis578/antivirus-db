@@ -1,3 +1,4 @@
+```yaml
 name: Compile Antivirus to EXE
 
 on:
@@ -22,8 +23,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install pyinstaller
 
+    - name: Verify Workspace Files
+      run: dir
+
     - name: Compile Application
-      run: python -m PyInstaller --onefile --noconsole scanner.py
+      run: pyinstaller --onefile --noconsole scanner.py
 
     - name: Save Executable Artifact
       uses: actions/upload-artifact@v4

@@ -26,7 +26,7 @@ class QuarantineHandler:
     def isolate(file_path, virus_name, filename):
         import winsound
         winsound.Beep(1000, 400)
-        if not os.path.exists(QUARANTINE_DIR): 
+        if not os.path.exists(QUARANTINE_DIR):
             os.makedirs(QUARANTINE_DIR)
         safe_virus_name = virus_name.replace(".", "_")
         dest_file_name = f"{safe_virus_name}_{filename}.locked"
@@ -113,9 +113,12 @@ class AntivirusApp:
                 if "Antivirus_Quarantine" in root: continue
                 for f in files:
                     p = os.path.join(root, f)
-                    try: self.known_files[p] = os.path.getmtime(p)
-                    except: pass
-        except: pass
+                    try:
+                        self.known_files[p] = os.path.getmtime(p)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
 
     def native_realtime_monitor(self):
         while True:
@@ -133,8 +136,10 @@ class AntivirusApp:
                             if p not in self.known_files or mtime > self.known_files[p]:
                                 self.known_files[p] = mtime
                                 self.evaluate_file(p, filename, real_time=True)
-                        except: pass
-            except: pass
+                        except Exception:
+                            pass
+            except Exception:
+                pass
 
     def evaluate_file(self, file_path, filename, real_time=False):
         try:
@@ -160,7 +165,8 @@ class AntivirusApp:
                 prefix = "REAL-TIME" if real_time else "DANGER"
                 self.root.after(0, lambda: self.tree.insert("", 0, values=(prefix, f"[{virus_name}] {filename}")))
                 QuarantineHandler.isolate(file_path, virus_name, filename)
-        except: pass
+        except Exception:
+            pass
 
     def open_quarantine_manager(self):
         q_win = tk.Toplevel(self.root)
@@ -211,7 +217,7 @@ class AntivirusApp:
                 sel = q_listbox.get(q_listbox.curselection())
                 os.remove(os.path.join(QUARANTINE_DIR, sel))
                 refresh_q_list()
-            except:
+            except Exception:
                 messagebox.showwarning("Error", "Please select an item to delete permanently.")
 
         ttk.Button(btn_frame, text="Restore File", command=restore_selected).pack(side=tk.LEFT, padx=20)
@@ -220,6 +226,3 @@ class AntivirusApp:
     def sync_database(self):
         GITHUB_USER = "doobis587"
         REPO_NAME = "antivirus-db"
-        CLOUD_DB_URL = f"https://githubusercontent.com{GITHUB_USER}/{REPO_NAME}/main/signatures.json"
-        try:
-            req = urllib.request.Request(CLOUD_DB_URL, headers={'User-Agent': 'Mozilla/5.0'})
