@@ -189,8 +189,8 @@ class AntivirusApp:
             try:
                 sel = q_listbox.get(q_listbox.curselection())
                 src = os.path.join(QUARANTINE_DIR, sel)
-                orig_name = sel.split("_", 1)[1] if "_" in sel else sel
-                orig_name = orig_name.replace(".locked", "")
+                parts = sel.split("_", 1)
+                orig_name = parts[1].replace(".locked", "") if len(parts) > 1 else sel.replace(".locked", "")
                 dst = os.path.join(self.target_folder, orig_name)
                 shutil.move(src, dst)
                 refresh_q_list()
@@ -217,4 +217,3 @@ class AntivirusApp:
             req = urllib.request.Request(CLOUD_DB_URL, headers={'User-Agent': 'Mozilla/5.0'})
             with urllib.request.urlopen(req, timeout=5) as response:
                 data = json.loads(response.read().decode())
-                self.virus_database = data.get("signatures", {})
