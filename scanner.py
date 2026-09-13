@@ -68,8 +68,11 @@ class AntivirusApp:
         control_frame.pack(fill=tk.X, padx=20)
         self.scan_btn = tk.Button(control_frame, text="🚀 Start Scan", font=("Segoe UI", 10, "bold"), bg="#10b981", fg="white", bd=0, padx=12, pady=6, command=self.start_scan_thread)
         self.scan_btn.pack(side=tk.LEFT)
+        
+        # This adds the Live Shield UI to your panel layout
         self.monitor_check = tk.Checkbutton(control_frame, text="🛡️ Live Shield", variable=self.monitor_active, font=("Segoe UI", 9, "bold"), fg="#1e3a8a", bg="#f3f4f6", command=self.toggle_monitor_status)
         self.monitor_check.pack(side=tk.LEFT, padx=15)
+        
         self.quarantine_btn = tk.Button(control_frame, text="🔒 Quarantine Manager", font=("Segoe UI", 9, "bold"), bg="#4b5563", fg="white", bd=0, padx=10, pady=6, command=self.open_quarantine_manager)
         self.quarantine_btn.pack(side=tk.LEFT, padx=5)
         
@@ -189,15 +192,8 @@ class AntivirusApp:
             try:
                 sel = q_listbox.get(q_listbox.curselection())
                 src = os.path.join(QUARANTINE_DIR, sel)
-                
-                # ALTERNATIVE FIX: Safely strips the .locked suffix using clean path tools instead of string splits
                 clean_name = sel.replace(".locked", "")
-                if "_" in clean_name:
-                    # Remove the prefix by splitting and taking everything after the first underscore
-                    orig_name = clean_name.split("_", 1)[-1]
-                else:
-                    orig_name = clean_name
-                    
+                orig_name = clean_name.split("_", 1)[-1] if "_" in clean_name else clean_name
                 dst = os.path.join(self.target_folder, orig_name)
                 shutil.move(src, dst)
                 refresh_q_list()
@@ -219,3 +215,7 @@ class AntivirusApp:
     def sync_database(self):
         GITHUB_USER = "doobis587"
         REPO_NAME = "antivirus-db"
+        CLOUD_DB_URL = f"https://githubusercontent.com{GITHUB_USER}/{REPO_NAME}/main/signatures.json"
+        try:
+            req = urllib.request.Request(CLOUD_DB_URL, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=5) as response:
