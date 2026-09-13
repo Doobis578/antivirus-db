@@ -8,8 +8,6 @@ import threading
 from datetime import datetime
 import tkinter as tk
 from tkinter import ttk, filedialog
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
 
 # Define the standard EICAR signature string
 EICAR_SIGNATURE = r"X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
@@ -29,52 +27,8 @@ class QuarantineHandler:
         dest_file_name = f"{safe_virus_name}_{filename}.locked"
         dest_path = os.path.join(QUARANTINE_DIR, dest_file_name)
         
-        shutil.move(file_path, dest_path)
-
-class RealTimeScannerHandler(FileSystemEventHandler):
-    def __init__(self, app):
-        self.app = app
-
-    def on_created(self, event):
-        if not event.is_directory:
-            self.scan_file_realtime(event.src_path)
-
-    def on_modified(self, event):
-        if not event.is_directory:
-            self.scan_file_realtime(event.src_path)
-
-    def scan_file_realtime(self, file_path):
-        if not self.app.monitor_active.get():
-            return
-            
-        filename = os.path.basename(file_path)
-        _, ext = os.path.splitext(filename.lower())
-        
-        if ext not in DANGEROUS_EXTENSIONS or filename in ["scanner.py", "signatures.json", "watchman.py"]:
-            return
-            
-        # Add a tiny delay to ensure the system has finished writing the file
-        time.sleep(0.1)
-        
         try:
-            if not os.path.exists(file_path):
-                return
-                
-            with open(file_path, "rb") as f:
-                file_bytes = f.read()
-            
-            file_hash = hashlib.sha256(file_bytes).hexdigest()
-            file_text = file_bytes.decode("utf-8", errors="ignore")
-            
-            virus_name = None
-            if file_hash in self.app.virus_database:
-                virus_name = self.app.virus_database[file_hash]
-            elif EICAR_SIGNATURE in file_text:
-                virus_name = "EICAR.TestFile.Virus"
-
-            if virus_name:
-                self.app.root.after(0, lambda: self.app.tree.insert("", 0, values=("🚨 REAL-TIME", f"[{virus_name}] {filename}")))
-                QuarantineHandler.isolate(file_path, virus_name, filename)
+            shutil.move(file_path, dest_path)
         except Exception:
             pass
 
@@ -89,13 +43,13 @@ class AntivirusApp:
         self.scanning = False
         self.target_folder = "."
         
-        # Real-time monitor control variables
+        # Native Real-time monitor variables
         self.monitor_active = tk.BooleanVar(value=False)
-        self.observer = None
+        self.known_files = {} # Keeps track of file paths and their last modified times
         
         self.setup_ui()
         threading.Thread(target=self.sync_database, daemon=True).start()
-        self.start_monitor_thread()
+        threading.Thread(target=self.native_realtime_monitor, daemon=True).start()
 
     def setup_ui(self):
         header = tk.Label(self.root, text="🛡️ Antivirus DB Control Center", font=("Segoe UI", 16, "bold"), bg="#1e3a8a", fg="white", pady=15)
@@ -116,7 +70,7 @@ class AntivirusApp:
         self.scan_btn = tk.Button(control_frame, text="🚀 Start System Scan", font=("Segoe UI", 11, "bold"), bg="#10b981", fg="white", bd=0, padx=15, pady=8, command=self.start_scan_thread)
         self.scan_btn.pack(side=tk.LEFT)
         
-        # NEW: Real-Time Shield Toggle Switch UI
+        # Real-Time Shield Toggle Switch UI
         self.monitor_check = tk.Checkbutton(control_frame, text="🛡️ Live Protection Shield", variable=self.monitor_active, font=("Segoe UI", 10, "bold"), fg="#1e3a8a", bg="#f3f4f6", activebackground="#f3f4f6", command=self.toggle_monitor_status)
         self.monitor_check.pack(side=tk.LEFT, padx=20, pady=10)
         
@@ -145,24 +99,79 @@ class AntivirusApp:
         if folder:
             self.target_folder = folder
             self.path_label.config(text=f"Target: {folder}")
-            # Reset the monitor directory if path changes
-            self.start_monitor_thread()
+            self.known_files.clear()
 
     def toggle_monitor_status(self):
         if self.monitor_active.get():
             self.status_text.config(text="🛡️ Live Protection Shield Active", fg="#047857")
+            self.initialize_monitor_baseline()
         else:
             self.status_text.config(text="⚠️ Live Protection Disabled", fg="#b45309")
 
-    def start_monitor_thread(self):
-        if self.observer:
-            self.observer.stop()
-            self.observer.join()
+    def initialize_monitor_baseline(self):
+        # Index existing files so they are not flagged as new when starting the engine
+        try:
+            for root, dirs, files in os.walk(self.target_folder):
+                if "Antivirus_Quarantine" in root:
+                    continue
+                for filename in files:
+                    file_path = os.path.join(root, filename)
+                    try:
+                        self.known_files[file_path] = os.path.getmtime(file_path)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
+    def native_realtime_monitor(self):
+        # Pure Python background monitor loop
+        while True:
+            time.sleep(1.0) # Check the target directory once every second
+            if not self.monitor_active.get() or self.scanning:
+                continue
+                
+            try:
+                for root, dirs, files in os.walk(self.target_folder):
+                    if "Antivirus_Quarantine" in root:
+                        continue
+                    for filename in files:
+                        _, ext = os.path.splitext(filename.lower())
+                        if ext not in DANGEROUS_EXTENSIONS or filename in ["scanner.py", "signatures.json", "watchman.py"]:
+                            continue
+                            
+                        file_path = os.path.join(root, filename)
+                        try:
+                            mtime = os.path.getmtime(file_path)
+                            # Scan if file is completely new or its modified time has changed
+                            if file_path not in self.known_files or mtime > self.known_files[file_path]:
+                                self.known_files[file_path] = mtime
+                                self.scan_single_file_realtime(file_path, filename)
+                        except Exception:
+                            pass
+            except Exception:
+                pass
+
+    def scan_single_file_realtime(self, file_path, filename):
+        try:
+            if not os.path.exists(file_path):
+                return
+            with open(file_path, "rb") as f:
+                file_bytes = f.read()
             
-        self.observer = Observer()
-        event_handler = RealTimeScannerHandler(self)
-        self.observer.schedule(event_handler, path=self.target_folder, recursive=True)
-        self.observer.start()
+            file_hash = hashlib.sha256(file_bytes).hexdigest()
+            file_text = file_bytes.decode("utf-8", errors="ignore")
+            
+            virus_name = None
+            if file_hash in self.virus_database:
+                virus_name = self.virus_database[file_hash]
+            elif EICAR_SIGNATURE in file_text:
+                virus_name = "EICAR.TestFile.Virus"
+
+            if virus_name:
+                self.root.after(0, lambda: self.tree.insert("", 0, values=("🚨 REAL-TIME", f"[{virus_name}] {filename}")))
+                QuarantineHandler.isolate(file_path, virus_name, filename)
+        except Exception:
+            pass
 
     def sync_database(self):
         GITHUB_USER = "doobis587"
@@ -209,20 +218,3 @@ class AntivirusApp:
         alert.grab_set()
         
         tk.Label(alert, text=title_text, font=("Segoe UI", 14, "bold"), bg=bg_color, fg=text_color, pady=15).pack()
-        tk.Label(alert, text=summary_text, font=("Segoe UI", 10), bg=bg_color, fg="#374151", justify=tk.CENTER).pack(pady=5)
-        
-        close_btn = tk.Button(alert, text="Dismiss Report", font=("Segoe UI", 10, "bold"), bg=text_color, fg="white", bd=0, padx=20, pady=6, command=alert.destroy)
-        close_btn.pack(pady=15)
-
-    def execute_system_scan(self):
-        files_to_scan = []
-        for root, dirs, files in os.walk(self.target_folder):
-            if "Antivirus_Quarantine" in root:
-                continue
-            for filename in files:
-                _, ext = os.path.splitext(filename.lower())
-                if ext in DANGEROUS_EXTENSIONS and filename not in ["scanner.py", "signatures.json", "watchman.py"]:
-                    files_to_scan.append(os.path.join(root, filename))
-                    
-        total_files = len(files_to_scan)
-        if total_files == 0:
