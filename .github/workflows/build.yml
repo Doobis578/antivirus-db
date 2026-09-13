@@ -23,10 +23,10 @@ jobs:
         pip install pyinstaller
 
     - name: Compile Application
-      run: pyinstaller --onefile --noconsole scanner.py
+      run: pyinstaller --onefile --noconsole --collect-all tkinter scanner.py
 
     - name: Save Executable Artifact
       uses: actions/upload-artifact@v4
       with:
         name: Antivirus-Program
-        path: dist/scanner.exe
+        path: dist/
