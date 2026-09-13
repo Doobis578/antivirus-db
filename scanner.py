@@ -190,8 +190,8 @@ class AntivirusApp:
                 sel = q_listbox.get(q_listbox.curselection())
                 src = os.path.join(QUARANTINE_DIR, sel)
                 parts = sel.split("_", 1)
-                # FIX: Successfully processes list subscripts cleanly for compilation
-                orig_name = parts[1].replace(".locked", "") if len(parts) > 1 else sel.replace(".locked", "")
+                # Fixed list subscript index target instead of the parent list object
+                orig_name = parts.replace(".locked", "") if len(parts) > 1 else sel.replace(".locked", "")
                 dst = os.path.join(self.target_folder, orig_name)
                 shutil.move(src, dst)
                 refresh_q_list()
