@@ -23,7 +23,7 @@ jobs:
         pip install pyinstaller watchdog pywin32
 
     - name: Compile Application
-      run: pyinstaller --onefile --noconsole scanner.py
+      run: python -m PyInstaller --onefile --noconsole scanner.py
 
     - name: Save Executable Artifact
       uses: actions/upload-artifact@v4
