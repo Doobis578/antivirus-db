@@ -21,11 +21,17 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Install dependencies
+        - name: Install dependencies
       run: pip install requests
 
     - name: Execute update script
-      run: python fetch_hashes.py
+      run: |
+        SCRIPT_PATH=$(find . -name "fetch_hashes.py" -print -quit)
+        if [ -z "$SCRIPT_PATH" ]; then
+          echo "ERROR: The file fetch_hashes.py was not found anywhere in the repository!"
+          exit 1
+        fi
+        python "$SCRIPT_PATH"
 
     - name: Commit and Push updates back to GitHub
       run: |
@@ -34,3 +40,4 @@ jobs:
         git add definitions.json
         git commit -m "Automated database update from MalwareBazaar" || exit 0
         git push
+
