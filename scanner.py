@@ -12,7 +12,7 @@ from tkinter import ttk, filedialog, messagebox
 EICAR_SIGNATURE = r"X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
 DANGEROUS_EXTENSIONS = [".exe", ".bat", ".cmd", ".dll", ".ps1", ".vbs", ".js", ".txt", ".com"]
 QUARANTINE_DIR = r"C:\Antivirus_Quarantine"
-GITHUB_DB_URL = "https://githubusercontent.com"
+raw.json GITHUB_DB_URL = "https://githubusercontent.com"
 
 
 HEURISTIC_KEYWORDS = [
