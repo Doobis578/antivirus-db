@@ -2,11 +2,11 @@ name: Auto Update Virus Definitions
 
 on:
   schedule:
-    - cron: '0 * * * *' # This triggers the script automatically every hour
-  workflow_dispatch:   # This adds a manual "Run Now" button in the GitHub UI for testing
+    - cron: '0 * * * *'
+  workflow_dispatch:
 
 permissions:
-  contents: write      # Gives GitHub permission to save the updated file to your repo
+  contents: write
 
 jobs:
   build-and-update:
@@ -21,14 +21,14 @@ jobs:
       with:
         python-version: '3.x'
 
-        - name: Install dependencies
+    - name: Install dependencies
       run: pip install requests
 
     - name: Execute update script
       run: |
         SCRIPT_PATH=$(find . -name "fetch_hashes.py" -print -quit)
         if [ -z "$SCRIPT_PATH" ]; then
-          echo "ERROR: The file fetch_hashes.py was not found anywhere in the repository!"
+          echo "ERROR: fetch_hashes.py not found!"
           exit 1
         fi
         python "$SCRIPT_PATH"
@@ -40,4 +40,3 @@ jobs:
         git add definitions.json
         git commit -m "Automated database update from MalwareBazaar" || exit 0
         git push
-
